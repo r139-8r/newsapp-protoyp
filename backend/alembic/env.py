@@ -22,8 +22,15 @@ import app.models  # noqa: F401
 # Alembic Config object
 config = context.config
 
+# Process database URL to ensure it uses the asyncpg driver
+db_url = settings.DATABASE_URL
+if db_url.startswith("postgresql://"):
+    db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+elif db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
+
 # Set database URL from our settings
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", db_url)
 
 # Setup logging
 if config.config_file_name is not None:
@@ -59,7 +66,7 @@ def do_run_migrations(connection):
 
 async def run_async_migrations() -> None:
     """Run migrations using an async engine."""
-    engine = create_async_engine(settings.DATABASE_URL)
+    engine = create_async_engine(db_url)
     async with engine.begin() as conn:
         await conn.run_sync(do_run_migrations)
     await engine.dispose()
