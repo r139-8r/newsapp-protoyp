@@ -1,0 +1,8 @@
+# HuggingFace Ignore List
+mobile/
+admin/
+docs/
+newsforge_prd.md
+.git/
+.gitignore
+.env
