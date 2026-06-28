@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NewsForge — Privacy Policy</title>
+  <style>
+    :root {
+      --bg-primary: #0F0F12;
+      --bg-surface: #1A1A1F;
+      --text-primary: #FFFFFF;
+      --text-secondary: #A0A0B0;
+      --accent: #3B82F6;
+      --radius: 12px;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 650px;
+      margin: 0 auto;
+      background: var(--bg-surface);
+      padding: 40px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .header {
+      margin-bottom: 30px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 20px;
+    }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .logo-text span {
+      color: var(--accent);
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      margin-top: 10px;
+    }
+
+    .last-updated {
+      color: var(--text-secondary);
+      font-size: 13px;
+      margin-top: 5px;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 5px;
+    }
+
+    p {
+      color: var(--text-secondary);
+      font-size: 15px;
+      margin-bottom: 15px;
+    }
+
+    ul {
+      margin-left: 20px;
+      margin-bottom: 15px;
+      color: var(--text-secondary);
+      font-size: 15px;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 20px;
+      transition: color 0.2s;
+    }
+
+    .back-btn:hover {
+      color: var(--accent);
+    }
+
+    .strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <a href="index.html" class="back-btn">← Back to App</a>
+  
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">N</div>
+      <div class="logo-text">News<span>Forge</span></div>
+    </div>
+    <h1>Privacy Policy</h1>
+    <div class="last-updated">Last Updated: June 28, 2026</div>
+  </div>
+
+  <p>NewsForge ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application and related services.</p>
+
+  <h2>1. Information We Collect</h2>
+  <p><span class="strong">1.1 Personal Data:</span> When you register an account or use our Service, we may collect:</p>
+  <ul>
+    <li><span class="strong">Account Credentials:</span> Your name and email address when you register using an email/password combination or sign in using a Google Account.</li>
+    <li><span class="strong">Preferences:</span> Language preferences and download settings.</li>
+  </ul>
+
+  <p><span class="strong">1.2 Device Permissions:</span> To provide template-generation features, the app requests access to certain native functions. <span class="strong">All media assets (such as photos and rendered videos) are processed locally on your device and are not uploaded to our servers.</span></p>
+  <ul>
+    <li><span class="strong">Camera Permission:</span> Required if you choose to capture a new photo directly inside a news template.</li>
+    <li><span class="strong">Storage / Photo Gallery Access:</span> Required to select photos from your gallery and to save your exported news graphics and videos directly to your device.</li>
+    <li><span class="strong">Network State:</span> Used to detect if your device is online or offline to manage template synchronization.</li>
+  </ul>
+
+  <h2>2. How We Use Your Information</h2>
+  <p>We use the collected data to:</p>
+  <ul>
+    <li>Create and manage your user account.</li>
+    <li>Track your daily AI usage credits (script generations and voice generations).</li>
+    <li>Synchronize news templates over-the-air (OTA).</li>
+    <li>Enforce rate limits and subscription features.</li>
+    <li>Respond to customer support requests.</li>
+  </ul>
+
+  <h2>3. Third-Party Integrations & Services</h2>
+  <p>We use services from the following third-party provider systems:</p>
+  <ul>
+    <li><span class="strong">Firebase Authentication:</span> Used to facilitate secure user sign-in and Google OAuth verification.</li>
+    <li><span class="strong">Microsoft Edge TTS / Piper TTS:</span> Used to synthesize text scripts into neural audio voiceovers. The script text is sent to the text-to-speech service to generate audio. It is processed transiently and is not stored permanently.</li>
+    <li><span class="strong">Groq API (Groq Inc.) / Mistral:</span> Used to generate AI news scripts from your topics. Topics and key points are sent to Groq APIs to generate responses.</li>
+    <li><span class="strong">Cloudflare R2:</span> Used as our Content Delivery Network (CDN) to host and serve template thumbnail files and visual assets. No user data is sent here.</li>
+  </ul>
+  <p>We do not sell your personal data, nor do we run third-party advertising networks within our application.</p>
+
+  <h2>4. Your Rights & Data Compliance</h2>
+  <p>In accordance with GDPR and India's DPDP Act, we respect your rights to control your data:</p>
+  <ul>
+    <li><span class="strong">Right to Access / Portability:</span> You can view your usage statistics and download a full JSON export of your account data directly from the "Profile" screen.</li>
+    <li><span class="strong">Right to Deletion:</span> You can delete all your personal data instantly by tapping "Delete My Account" in the Profile Settings. This will perform an immediate hard delete of your database record, projects, and logs from our servers.</li>
+  </ul>
+
+  <h2>5. Contact Us</h2>
+  <p>If you have questions or comments about this Privacy Policy, please contact us at: <span class="strong">support@newsforge.app</span></p>
+</div>
+
+</body>
+</html>

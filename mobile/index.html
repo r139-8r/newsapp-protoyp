@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0F0F12">
+  <meta name="description" content="NewsForge — Create professional news graphics & videos in 60 seconds. AI-powered template filler for news creators.">
+  <title>NewsForge — News Content Creator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ════════════════════════════════════════════════════
+       SPLASH SCREEN
+       ════════════════════════════════════════════════════ -->
+  <div id="splash-screen">
+    <div class="splash-logo">
+      <div class="splash-logo-icon">N</div>
+      <div class="splash-logo-text">News<span>Forge</span></div>
+    </div>
+    <div class="splash-tagline">Professional news content in 60 seconds</div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       ONBOARDING CAROUSEL
+       ════════════════════════════════════════════════════ -->
+  <div id="onboarding-screen" class="onboarding-screen" style="display:none">
+    <div class="onboarding-carousel">
+      <div class="onboarding-slide active" data-slide="0">
+        <div class="onboarding-illustration">📰</div>
+        <h2 class="onboarding-title">Pick a Template</h2>
+        <p class="onboarding-desc">Browse stunning, pre-designed news templates for Breaking News, Sports, Weather, and more.</p>
+      </div>
+      <div class="onboarding-slide" data-slide="1">
+        <div class="onboarding-illustration">✏️</div>
+        <h2 class="onboarding-title">Fill in the Blanks</h2>
+        <p class="onboarding-desc">Just type your headline, upload a photo, and watch the live preview update instantly. No design skills needed.</p>
+      </div>
+      <div class="onboarding-slide" data-slide="2">
+        <div class="onboarding-illustration">🚀</div>
+        <h2 class="onboarding-title">Export in 60 Seconds</h2>
+        <p class="onboarding-desc">Generate AI voiceovers, create professional videos, and share directly to Instagram, WhatsApp & YouTube.</p>
+      </div>
+    </div>
+    <div class="onboarding-footer">
+      <div class="onboarding-dots">
+        <div class="onboarding-dot active" data-dot="0"></div>
+        <div class="onboarding-dot" data-dot="1"></div>
+        <div class="onboarding-dot" data-dot="2"></div>
+      </div>
+      <button id="onboarding-next-btn" class="btn btn-primary btn-full btn-lg">Next</button>
+      <button id="onboarding-skip-btn" class="btn btn-ghost" style="font-size:14px">Skip</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       AUTH SCREEN
+       ════════════════════════════════════════════════════ -->
+  <div id="auth-screen" class="auth-screen" style="display:none">
+    <div class="auth-header">
+      <h1>Welcome to News<span style="color:var(--accent)">Forge</span></h1>
+      <p>Create professional news content in seconds</p>
+    </div>
+
+    <button class="auth-google-btn" id="google-sign-in-btn">
+      <svg viewBox="0 0 24 24" width="20" height="20">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Continue with Google
+    </button>
+
+    <div class="auth-divider">or continue with email</div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login">Login</button>
+      <button class="auth-tab" data-tab="register">Register</button>
+    </div>
+
+    <!-- Login Form -->
+    <form class="auth-form" id="login-form">
+      <div class="input-group">
+        <label>Email</label>
+        <input type="email" placeholder="you@example.com" required>
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full btn-lg">Login</button>
+    </form>
+
+    <!-- Register Form -->
+    <form class="auth-form hidden" id="register-form">
+      <div class="input-group">
+        <label>Full Name</label>
+        <input type="text" placeholder="Rahul Sharma" required>
+      </div>
+      <div class="input-group">
+        <label>Email</label>
+        <input type="email" placeholder="you@example.com" required>
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" placeholder="Min 8 characters" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full btn-lg">Create Account</button>
+    </form>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       HOME / TEMPLATE BROWSER
+       ════════════════════════════════════════════════════ -->
+  <div id="home-screen" class="screen" style="display:none">
+    <div class="topbar">
+      <div class="topbar-title">News<span>Forge</span></div>
+      <div class="topbar-actions">
+        <button class="btn-icon btn-ghost" id="notifications-btn" title="Notifications">🔔</button>
+      </div>
+    </div>
+
+    <div class="search-bar">
+      <span class="search-bar-icon">🔍</span>
+      <input type="text" id="template-search" placeholder="Search templates...">
+    </div>
+
+    <div class="category-pills" id="category-pills">
+      <button class="category-pill active" data-category="all">All</button>
+      <button class="category-pill" data-category="breaking">Breaking News</button>
+      <button class="category-pill" data-category="sports">Sports</button>
+      <button class="category-pill" data-category="weather">Weather</button>
+      <button class="category-pill" data-category="politics">Politics</button>
+      <button class="category-pill" data-category="entertainment">Entertainment</button>
+      <button class="category-pill" data-category="business">Business</button>
+    </div>
+
+    <div class="template-grid" id="template-grid">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       TEMPLATE PREVIEW
+       ════════════════════════════════════════════════════ -->
+  <div id="preview-screen" class="screen no-nav" style="display:none">
+    <div class="topbar">
+      <button class="topbar-back" id="preview-back-btn">← Back</button>
+      <div class="topbar-actions">
+        <button class="btn-icon btn-ghost">♡</button>
+      </div>
+    </div>
+
+    <div class="preview-hero" id="preview-hero">
+      <div style="font-size:64px; opacity:0.2">📰</div>
+    </div>
+
+    <div class="preview-details">
+      <h2 id="preview-title">Template Name</h2>
+      <div class="preview-meta-row" id="preview-badges">
+        <!-- filled by JS -->
+      </div>
+      <p class="preview-description" id="preview-description">A professional template for your news content.</p>
+
+      <div class="preview-info-grid">
+        <div class="preview-info-item">
+          <div class="preview-info-label">Format</div>
+          <div class="preview-info-value" id="preview-format">Image</div>
+        </div>
+        <div class="preview-info-item">
+          <div class="preview-info-label">Category</div>
+          <div class="preview-info-value" id="preview-category">Breaking News</div>
+        </div>
+        <div class="preview-info-item">
+          <div class="preview-info-label">Size</div>
+          <div class="preview-info-value" id="preview-size">Story</div>
+        </div>
+        <div class="preview-info-item">
+          <div class="preview-info-label">Languages</div>
+          <div class="preview-info-value" id="preview-languages">EN, HI</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sticky-bottom">
+      <button class="btn btn-primary btn-full btn-lg" id="use-template-btn">Use Template</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       FILL SCREEN (Core Experience)
+       ════════════════════════════════════════════════════ -->
+  <div id="fill-screen" class="screen no-nav" style="display:none">
+    <div class="topbar">
+      <button class="topbar-back" id="fill-back-btn">← Back</button>
+      <span class="topbar-title" style="font-size:16px" id="fill-template-name">Template</span>
+      <div></div>
+    </div>
+
+    <!-- Live Preview -->
+    <div class="fill-screen-preview" id="fill-preview">
+      <div class="fill-preview-canvas" id="fill-canvas">
+        <!-- Template preview rendered here -->
+        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;">
+          <div style="position:absolute;top:0;left:0;right:0;bottom:0;" id="fill-preview-bg"></div>
+          <div class="fill-preview-overlay" id="fill-preview-overlay">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+              <span style="padding:3px 10px;background:var(--error);border-radius:4px;font-size:11px;font-weight:800;letter-spacing:1px" id="fill-preview-badge">BREAKING NEWS</span>
+            </div>
+            <div class="fill-preview-headline" id="fill-preview-headline">Your headline will appear here</div>
+            <div class="fill-preview-source" id="fill-preview-source">Source • Date</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Form -->
+    <div class="fill-form" id="fill-form">
+      <div class="fill-form-section-title">Content Fields</div>
+
+      <div class="input-group">
+        <label>Headline</label>
+        <input type="text" id="fill-headline" placeholder="Enter your headline..." maxlength="80">
+        <span class="char-counter" id="headline-counter">0/80</span>
+        <span class="input-hint">Max 80 characters</span>
+      </div>
+
+      <div class="input-group">
+        <label>Main Photo</label>
+        <div class="image-picker" id="fill-image-picker">
+          <input type="file" accept="image/*" id="fill-image-input" style="display:none">
+          <span class="image-picker-icon">📷</span>
+          <span class="image-picker-text">Tap to upload photo</span>
+          <span class="input-hint" style="font-size:11px">Square crop recommended</span>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Source / Channel</label>
+        <input type="text" id="fill-source" placeholder="e.g., NewsForge Media">
+      </div>
+
+      <div class="input-group">
+        <label>Date</label>
+        <input type="date" id="fill-date">
+      </div>
+
+      <div class="input-group">
+        <label>Category Tag</label>
+        <select id="fill-category-tag">
+          <option value="breaking">Breaking News</option>
+          <option value="sports">Sports</option>
+          <option value="weather">Weather</option>
+          <option value="politics">Politics</option>
+          <option value="entertainment">Entertainment</option>
+          <option value="business">Business</option>
+        </select>
+      </div>
+
+      <div id="voice-indicator-container" style="display:none">
+        <div class="voice-indicator">
+          <span>✓</span> AI Voice attached
+        </div>
+      </div>
+    </div>
+
+    <!-- Sticky Bottom Actions -->
+    <div class="sticky-bottom">
+      <div class="sticky-bottom-duo">
+        <button class="btn btn-secondary" id="fill-ai-btn">🤖 AI Tools</button>
+        <button class="btn btn-primary" id="fill-export-btn" disabled>Export</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       AI TOOLS SCREEN
+       ════════════════════════════════════════════════════ -->
+  <div id="ai-tools-screen" class="screen" style="display:none">
+    <div class="topbar">
+      <div class="topbar-title">AI Tools</div>
+    </div>
+
+    <div class="ai-tools-grid">
+      <div class="ai-tool-card" id="ai-script-card">
+        <div class="ai-tool-icon script">✍️</div>
+        <h3>AI Script Writer</h3>
+        <p>Generate professional news scripts powered by AI. Choose your tone, length, and language — get broadcast-ready copy in seconds.</p>
+        <div class="ai-tool-usage">
+          <span class="ai-tool-usage-label">Usage today</span>
+          <span class="ai-tool-usage-value">Unlimited ∞</span>
+        </div>
+      </div>
+
+      <div class="ai-tool-card" id="ai-voice-card">
+        <div class="ai-tool-icon voice">🎙️</div>
+        <h3>AI Voice Generator</h3>
+        <p>Turn any script into a professional AI voiceover. Multiple languages, voices, and styles — perfect for news videos.</p>
+        <div class="ai-tool-usage">
+          <span class="ai-tool-usage-label">Usage today</span>
+          <span class="ai-tool-usage-value">Unlimited ∞</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       AI SCRIPT WRITER SCREEN
+       ════════════════════════════════════════════════════ -->
+  <div id="script-screen" class="screen no-nav" style="display:none">
+    <div class="topbar">
+      <button class="topbar-back" id="script-back-btn">← Back</button>
+      <span style="font-size:16px;font-weight:700">AI Script Writer</span>
+      <div></div>
+    </div>
+
+    <div style="padding:var(--space-xl);display:flex;flex-direction:column;gap:var(--space-xl);">
+      <div class="input-group">
+        <label>Topic / Headline</label>
+        <input type="text" id="script-topic" placeholder="e.g., PM announces new infrastructure plan">
+      </div>
+
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:var(--space-sm);letter-spacing:0.3px;text-transform:uppercase;font-family:var(--font-mono)">Tone</label>
+        <div class="tone-pills" id="tone-pills">
+          <button class="tone-pill active" data-tone="formal">Formal</button>
+          <button class="tone-pill" data-tone="casual">Casual</button>
+          <button class="tone-pill" data-tone="dramatic">Dramatic</button>
+          <button class="tone-pill" data-tone="neutral">Neutral</button>
+        </div>
+      </div>
+
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:var(--space-sm);letter-spacing:0.3px;text-transform:uppercase;font-family:var(--font-mono)">Target Length</label>
+        <div class="length-pills" id="length-pills">
+          <button class="length-pill active" data-length="30">30s</button>
+          <button class="length-pill" data-length="60">60s</button>
+          <button class="length-pill" data-length="90">90s</button>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Key Points (Optional)</label>
+        <textarea id="script-keypoints" placeholder="Add key points to include in the script..." rows="3"></textarea>
+      </div>
+
+      <div class="input-group">
+        <label>Language</label>
+        <select id="script-language">
+          <option value="en">English</option>
+          <option value="hi">हिन्दी (Hindi)</option>
+          <option value="ta">தமிழ் (Tamil)</option>
+          <option value="te">తెలుగు (Telugu)</option>
+          <option value="bn">বাংলা (Bengali)</option>
+          <option value="mr">मराठी (Marathi)</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary btn-full btn-lg" id="generate-script-btn">✨ Generate Script</button>
+
+      <!-- Script Output -->
+      <div id="script-output-section" style="display:none">
+        <div class="fill-form-section-title">Generated Script</div>
+        <div class="script-output" id="script-output-text"></div>
+        <div class="script-actions" style="margin-top:var(--space-lg)">
+          <button class="btn btn-secondary btn-sm" id="copy-script-btn">📋 Copy</button>
+          <button class="btn btn-primary btn-sm" id="use-for-voice-btn">🎙️ Use for Voice</button>
+          <button class="btn btn-ghost btn-sm" id="regenerate-script-btn">🔄 Regenerate</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       AI VOICE GENERATOR SCREEN
+       ════════════════════════════════════════════════════ -->
+  <div id="voice-screen" class="screen no-nav" style="display:none">
+    <div class="topbar">
+      <button class="topbar-back" id="voice-back-btn">← Back</button>
+      <span style="font-size:16px;font-weight:700">AI Voice Generator</span>
+      <div></div>
+    </div>
+
+    <div style="padding:var(--space-xl);display:flex;flex-direction:column;gap:var(--space-xl);">
+      <div class="input-group">
+        <label>Script Text</label>
+        <textarea id="voice-script-input" placeholder="Paste or type the script you want to voice..." rows="5"></textarea>
+      </div>
+
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:var(--space-sm);letter-spacing:0.3px;text-transform:uppercase;font-family:var(--font-mono)">Voice</label>
+        <div class="voice-selector" id="voice-selector">
+          <div class="voice-option active" data-voice="ananya">
+            <div class="voice-option-name">Ananya</div>
+            <div class="voice-option-meta">Female • Hindi</div>
+          </div>
+          <div class="voice-option" data-voice="raj">
+            <div class="voice-option-name">Raj</div>
+            <div class="voice-option-meta">Male • Hindi</div>
+          </div>
+          <div class="voice-option" data-voice="emma">
+            <div class="voice-option-name">Emma</div>
+            <div class="voice-option-meta">Female • English</div>
+          </div>
+          <div class="voice-option" data-voice="james">
+            <div class="voice-option-name">James</div>
+            <div class="voice-option-meta">Male • English</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <label style="font-size:13px;font-weight:600;color:var(--text-secondary);letter-spacing:0.3px;text-transform:uppercase;font-family:var(--font-mono)">Speed</label>
+          <span class="slider-value" id="speed-value">1.0×</span>
+        </div>
+        <input type="range" id="voice-speed" min="0.8" max="1.2" step="0.1" value="1.0">
+      </div>
+
+      <button class="btn btn-primary btn-full btn-lg" id="generate-voice-btn">🎙️ Generate Voice</button>
+
+      <!-- Audio Player Output -->
+      <div id="voice-output-section" style="display:none">
+        <div class="fill-form-section-title">Generated Voice</div>
+        <div class="audio-player">
+          <div class="audio-waveform" id="audio-waveform"></div>
+          <div class="audio-controls">
+            <button class="play-btn" id="play-voice-btn">▶</button>
+            <div class="audio-progress">
+              <div class="audio-progress-bar" id="audio-progress-bar"></div>
+            </div>
+            <span class="audio-time" id="audio-time">0:00 / 0:32</span>
+          </div>
+        </div>
+        <div class="script-actions" style="margin-top:var(--space-lg)">
+          <button class="btn btn-primary btn-sm" id="attach-voice-btn">📎 Attach to Template</button>
+          <button class="btn btn-secondary btn-sm" id="download-voice-btn">⬇ Download</button>
+          <button class="btn btn-ghost btn-sm" id="regenerate-voice-btn">🔄 Regenerate</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       EXPORT SCREEN
+       ════════════════════════════════════════════════════ -->
+  <div id="export-screen" class="screen no-nav" style="display:none">
+    <div class="topbar">
+      <button class="topbar-back" id="export-back-btn">← Back</button>
+      <span style="font-size:16px;font-weight:700">Export</span>
+      <div></div>
+    </div>
+
+    <!-- Export Options -->
+    <div class="export-options" id="export-options-view">
+      <div>
+        <div class="option-group-title">Format</div>
+        <div class="option-pills" id="format-pills">
+          <div class="option-pill active" data-format="png">PNG</div>
+          <div class="option-pill" data-format="jpg">JPG</div>
+          <div class="option-pill" data-format="mp4">MP4 <span class="pill-sub">Video</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="option-group-title">Size</div>
+        <div class="option-pills" id="size-pills">
+          <div class="option-pill active" data-size="story">
+            Story
+            <span class="pill-sub">1080×1920</span>
+          </div>
+          <div class="option-pill" data-size="post">
+            Post
+            <span class="pill-sub">1080×1080</span>
+          </div>
+          <div class="option-pill" data-size="landscape">
+            Landscape
+            <span class="pill-sub">1280×720</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="option-group-title">Quality</div>
+        <div class="option-pills" id="quality-pills">
+          <div class="option-pill" data-quality="720">720p</div>
+          <div class="option-pill active" data-quality="1080">1080p</div>
+          <div class="option-pill" data-quality="4k">4K</div>
+        </div>
+      </div>
+
+      <div id="voice-toggle-section" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:var(--space-lg);background:var(--bg-surface);border-radius:var(--radius);">
+          <div>
+            <div style="font-size:15px;font-weight:600;">Include AI Voice</div>
+            <div style="font-size:12px;color:var(--text-tertiary);margin-top:2px">Attach generated voiceover</div>
+          </div>
+          <div class="toggle active" id="voice-toggle"></div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-full btn-lg" id="export-now-btn">Export Now</button>
+    </div>
+
+    <!-- Export Progress -->
+    <div class="export-progress" id="export-progress-view" style="display:none">
+      <div class="progress-ring">
+        <span class="progress-percentage" id="export-percent">0%</span>
+      </div>
+      <p class="progress-label" id="export-progress-label">Preparing export...</p>
+      <div class="progress-bar-container">
+        <div class="progress-bar" id="export-progress-bar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Export Complete -->
+    <div class="export-complete" id="export-complete-view" style="display:none">
+      <div class="export-complete-icon">✓</div>
+      <h2 style="font-size:22px;font-weight:700;margin-bottom:var(--space-sm)">Saved to Gallery!</h2>
+      <p style="color:var(--text-secondary);font-size:14px">Your news content is ready to share</p>
+
+      <div class="share-buttons">
+        <button class="share-btn">
+          <div class="share-btn-icon" style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)">📸</div>
+          <span class="share-btn-label">Instagram</span>
+        </button>
+        <button class="share-btn">
+          <div class="share-btn-icon" style="background:#25D366">💬</div>
+          <span class="share-btn-label">WhatsApp</span>
+        </button>
+        <button class="share-btn">
+          <div class="share-btn-icon" style="background:#FF0000">▶️</div>
+          <span class="share-btn-label">YouTube</span>
+        </button>
+        <button class="share-btn">
+          <div class="share-btn-icon" style="background:var(--bg-surface-elevated)">📤</div>
+          <span class="share-btn-label">More</span>
+        </button>
+      </div>
+
+      <button class="btn btn-primary btn-full btn-lg" id="create-another-btn" style="margin-top:var(--space-2xl)">Create Another</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       MY PROJECTS SCREEN
+       ════════════════════════════════════════════════════ -->
+  <div id="projects-screen" class="screen" style="display:none">
+    <div class="topbar">
+      <div class="topbar-title">My Projects</div>
+    </div>
+
+    <div class="projects-list" id="projects-list">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       PROFILE & SETTINGS SCREEN
+       ════════════════════════════════════════════════════ -->
+  <div id="profile-screen" class="screen" style="display:none">
+    <div class="profile-header">
+      <div class="profile-avatar">RS</div>
+      <div class="profile-name">Rahul Sharma</div>
+      <div class="profile-email">rahul@example.com</div>
+      <div class="profile-plan">Free Plan</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value accent">12</div>
+        <div class="stat-label">Exports</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">∞</div>
+        <div class="stat-label">AI Credits</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">5</div>
+        <div class="stat-label">Projects</div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Preferences</div>
+      <div class="settings-item" id="setting-language">
+        <div class="settings-item-left">
+          <div class="settings-item-icon">🌐</div>
+          <span class="settings-item-label">Language</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:var(--space-sm)">
+          <span class="settings-item-value">English</span>
+          <span class="settings-item-arrow">›</span>
+        </div>
+      </div>
+      <div class="settings-item" id="setting-quality">
+        <div class="settings-item-left">
+          <div class="settings-item-icon">📐</div>
+          <span class="settings-item-label">Download Quality</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:var(--space-sm)">
+          <span class="settings-item-value">1080p</span>
+          <span class="settings-item-arrow">›</span>
+        </div>
+      </div>
+      <div class="settings-item" id="setting-cache">
+        <div class="settings-item-left">
+          <div class="settings-item-icon">🗑️</div>
+          <span class="settings-item-label">Clear Cached Templates</span>
+        </div>
+        <span class="settings-item-arrow">›</span>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Account</div>
+      <div class="settings-item" id="setting-mydata">
+        <div class="settings-item-left">
+          <div class="settings-item-icon">📊</div>
+          <span class="settings-item-label">My Data</span>
+        </div>
+        <span class="settings-item-arrow">›</span>
+      </div>
+      <div class="settings-item" id="setting-export-data">
+        <div class="settings-item-left">
+          <div class="settings-item-icon">📥</div>
+          <span class="settings-item-label">Export My Data</span>
+        </div>
+        <span class="settings-item-arrow">›</span>
+      </div>
+      <div class="settings-item danger" id="setting-delete">
+        <div class="settings-item-left">
+          <div class="settings-item-icon">⚠️</div>
+          <span class="settings-item-label">Delete My Account</span>
+        </div>
+        <span class="settings-item-arrow">›</span>
+      </div>
+    </div>
+
+    <div style="padding:var(--space-xl);text-align:center">
+      <button class="btn btn-ghost btn-full" id="logout-btn">Logout</button>
+      <p style="color:var(--text-tertiary);font-size:11px;margin-top:var(--space-lg);font-family:var(--font-mono)">NewsForge v1.0.0</p>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       BOTTOM NAVIGATION
+       ════════════════════════════════════════════════════ -->
+  <nav class="bottom-nav" id="bottom-nav" style="display:none">
+    <button class="nav-item active" data-screen="home">
+      <span class="nav-icon">🏠</span>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" data-screen="projects">
+      <span class="nav-icon">📁</span>
+      <span>Projects</span>
+    </button>
+    <button class="nav-item" data-screen="ai-tools">
+      <span class="nav-icon">🤖</span>
+      <span>AI Tools</span>
+    </button>
+    <button class="nav-item" data-screen="profile">
+      <span class="nav-icon">👤</span>
+      <span>Profile</span>
+    </button>
+  </nav>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     MODAL BACKDROP & TOAST
+     ═══════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="modal-backdrop"></div>
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toast-icon">✓</span>
+  <span class="toast-message" id="toast-message">Action completed</span>
+</div>
+
+<!-- Firebase Compat SDKs (Core & Auth) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+<script>
+  // Firebase configuration placeholder (Replace with your actual keys)
+  const firebaseConfig = {
+    apiKey: "YOUR_FIREBASE_API_KEY",
+    authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
+    projectId: "YOUR_FIREBASE_PROJECT_ID",
+    storageBucket: "YOUR_FIREBASE_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_FIREBASE_MESSAGING_SENDER_ID",
+    appId: "YOUR_FIREBASE_APP_ID"
+  };
+
+  // Initialize Firebase if actual configuration is supplied
+  if (typeof firebase !== 'undefined' && firebaseConfig.apiKey !== "YOUR_FIREBASE_API_KEY") {
+    firebase.initializeApp(firebaseConfig);
+  }
+
+  // Dynamic API configuration detection (local fallback or prod Space URL)
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    window.NF_API_BASE = 'http://localhost:8000';
+  } else {
+    // Replace with your actual HuggingFace Space production URL
+    window.NF_API_BASE = 'https://goat1242-newsforge-api.hf.space';
+  }
+</script>
+<script src="api.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

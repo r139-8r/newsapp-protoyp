@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="NewsForge Admin Dashboard — Manage templates, users, and analytics.">
+  <title>NewsForge — Admin Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ════════════════════════════════════════════════════
+       LOGIN PAGE
+       ════════════════════════════════════════════════════ -->
+  <div class="login-page" id="login-page">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="login-logo-icon">N</div>
+        <h1>News<span>Forge</span></h1>
+        <p>Admin Dashboard</p>
+      </div>
+      <div class="login-error" id="login-error">Invalid email or password. Please try again.</div>
+      <form class="login-form" id="login-form">
+        <div class="login-input-group">
+          <label>Email</label>
+          <input type="email" id="admin-email" placeholder="admin@newsforge.app" required>
+        </div>
+        <div class="login-input-group">
+          <label>Password</label>
+          <input type="password" id="admin-password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="login-btn">Sign In</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       APP LAYOUT (Sidebar + Main)
+       ════════════════════════════════════════════════════ -->
+  <div class="app-layout" id="app-layout">
+
+    <!-- ── Sidebar ── -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">N</div>
+        <span class="sidebar-brand">News<span>Forge</span></span>
+        <span class="sidebar-badge">Admin</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="sidebar-section-label">Main</div>
+        <div class="sidebar-item active" data-page="dashboard">
+          <span class="sidebar-item-icon">📊</span>
+          <span>Dashboard</span>
+        </div>
+        <div class="sidebar-item" data-page="templates">
+          <span class="sidebar-item-icon">📰</span>
+          <span>Templates</span>
+          <span class="sidebar-item-badge" style="background:var(--accent-light);color:var(--accent)">20</span>
+        </div>
+        <div class="sidebar-item" data-page="editor">
+          <span class="sidebar-item-icon">🎨</span>
+          <span>Template Editor</span>
+        </div>
+
+        <div class="sidebar-section-label">Analytics</div>
+        <div class="sidebar-item" data-page="analytics">
+          <span class="sidebar-item-icon">📈</span>
+          <span>Analytics</span>
+        </div>
+        <div class="sidebar-item" data-page="users">
+          <span class="sidebar-item-icon">👥</span>
+          <span>Users</span>
+          <span class="sidebar-item-badge" style="background:var(--success-bg);color:var(--success)">1.2K</span>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user" id="sidebar-logout-btn">
+          <div class="sidebar-avatar">A</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name">Admin User</div>
+            <div class="sidebar-user-role">Super Admin</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── Main Content ── -->
+    <main class="main-content">
+
+      <!-- Header -->
+      <header class="main-header">
+        <div class="main-header-left">
+          <h2 id="page-title">Dashboard</h2>
+        </div>
+        <div class="main-header-actions">
+          <button class="btn btn-primary" id="header-create-btn" onclick="navigateTo('editor')">+ Create Template</button>
+        </div>
+      </header>
+
+      <!-- ═══════════════════════════════════════════
+           PAGE: Dashboard Home
+           ═══════════════════════════════════════════ -->
+      <div class="page-content page-section active" id="page-dashboard">
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-card-header">
+              <div class="metric-card-icon blue">📰</div>
+              <span class="metric-card-change positive">+3 this week</span>
+            </div>
+            <div class="metric-card-value">20</div>
+            <div class="metric-card-label">Total Templates</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-card-header">
+              <div class="metric-card-icon green">👥</div>
+              <span class="metric-card-change positive">+127 today</span>
+            </div>
+            <div class="metric-card-value">1,247</div>
+            <div class="metric-card-label">Total Users</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-card-header">
+              <div class="metric-card-icon amber">📤</div>
+              <span class="metric-card-change positive">+18%</span>
+            </div>
+            <div class="metric-card-value">342</div>
+            <div class="metric-card-label">Exports Today</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-card-header">
+              <div class="metric-card-icon purple">🤖</div>
+              <span class="metric-card-change positive">+24%</span>
+            </div>
+            <div class="metric-card-value">89</div>
+            <div class="metric-card-label">AI Generations Today</div>
+          </div>
+        </div>
+
+        <div class="quick-actions">
+          <button class="btn btn-primary" onclick="navigateTo('editor')">🎨 Create Template</button>
+          <button class="btn btn-secondary" onclick="navigateTo('analytics')">📈 View Analytics</button>
+          <button class="btn btn-secondary" onclick="navigateTo('users')">👥 Manage Users</button>
+        </div>
+
+        <!-- Recent Templates -->
+        <div class="table-card">
+          <div class="table-header">
+            <h3>Recent Templates</h3>
+            <button class="btn btn-ghost btn-sm" onclick="navigateTo('templates')">View All →</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Format</th>
+                <th>Status</th>
+                <th>Downloads</th>
+              </tr>
+            </thead>
+            <tbody id="dashboard-recent-table">
+              <!-- Filled by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════
+           PAGE: Template Manager
+           ═══════════════════════════════════════════ -->
+      <div class="page-content page-section" id="page-templates" style="display:none">
+        <div class="table-card">
+          <div class="table-header">
+            <h3>All Templates</h3>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input type="text" class="table-search" id="template-search" placeholder="Search templates...">
+              <select class="filter-select" id="filter-category">
+                <option value="">All Categories</option>
+                <option value="breaking">Breaking News</option>
+                <option value="sports">Sports</option>
+                <option value="weather">Weather</option>
+                <option value="politics">Politics</option>
+                <option value="entertainment">Entertainment</option>
+                <option value="business">Business</option>
+              </select>
+              <select class="filter-select" id="filter-status">
+                <option value="">All Status</option>
+                <option value="published">Published</option>
+                <option value="draft">Draft</option>
+                <option value="archived">Archived</option>
+              </select>
+              <select class="filter-select" id="filter-format">
+                <option value="">All Formats</option>
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+              </select>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:44px"><input type="checkbox" id="select-all-templates"></th>
+                <th></th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Format</th>
+                <th>Status</th>
+                <th>Downloads</th>
+                <th>Last Modified</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="templates-table-body">
+              <!-- Filled by JS -->
+            </tbody>
+          </table>
+          <div class="table-footer">
+            <span id="templates-count">Showing 20 templates</span>
+            <div class="pagination">
+              <button class="active">1</button>
+              <button>2</button>
+              <button>→</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════
+           PAGE: Template Editor (3-Panel)
+           ═══════════════════════════════════════════ -->
+      <div class="page-content no-padding page-section" id="page-editor" style="display:none">
+        <div class="editor-layout">
+          <!-- Toolbar -->
+          <div class="editor-toolbar">
+            <div class="toolbar-group">
+              <div class="toolbar-btn active" data-tool="text">
+                <span class="toolbar-btn-icon">T</span>
+                <span>Text</span>
+              </div>
+              <div class="toolbar-btn" data-tool="image">
+                <span class="toolbar-btn-icon">🖼️</span>
+                <span>Image</span>
+              </div>
+              <div class="toolbar-btn" data-tool="shape">
+                <span class="toolbar-btn-icon">⬜</span>
+                <span>Shape</span>
+              </div>
+              <div class="toolbar-btn" data-tool="icon">
+                <span class="toolbar-btn-icon">⭐</span>
+                <span>Icon</span>
+              </div>
+              <div class="toolbar-btn" data-tool="line">
+                <span class="toolbar-btn-icon">━</span>
+                <span>Line</span>
+              </div>
+              <div class="toolbar-btn" data-tool="bg">
+                <span class="toolbar-btn-icon">🎨</span>
+                <span>Background</span>
+              </div>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+              <div class="toolbar-btn" title="Undo">
+                <span class="toolbar-btn-icon">↩️</span>
+                <span>Undo</span>
+              </div>
+              <div class="toolbar-btn" title="Redo">
+                <span class="toolbar-btn-icon">↪️</span>
+                <span>Redo</span>
+              </div>
+            </div>
+            <div style="flex:1"></div>
+            <div class="toolbar-group">
+              <button class="btn btn-ghost btn-sm">Preview as User</button>
+              <button class="btn btn-secondary btn-sm">Save Draft</button>
+              <button class="btn btn-primary btn-sm">Publish</button>
+            </div>
+          </div>
+
+          <!-- Layers Panel -->
+          <div class="layers-panel">
+            <div class="panel-title">Layers</div>
+            <div class="layers-list" id="layers-list">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+
+          <!-- Canvas Area -->
+          <div class="canvas-area">
+            <div class="canvas-wrapper" id="editor-canvas" style="width:270px;height:480px;">
+              <!-- Simulated Canvas Content -->
+              <div id="canvas-content" style="width:100%;height:100%;position:relative;overflow:hidden;">
+                <!-- Canvas elements rendered by JS -->
+              </div>
+            </div>
+            <div class="canvas-size-label">1080 × 1920 • Zoom: 75%</div>
+            <div class="canvas-zoom-controls">
+              <button class="zoom-btn" id="zoom-out-btn">−</button>
+              <button class="zoom-btn" id="zoom-in-btn">+</button>
+            </div>
+          </div>
+
+          <!-- Properties Panel -->
+          <div class="properties-panel">
+            <div class="panel-title">Properties</div>
+
+            <div class="prop-section">
+              <div class="prop-section-title">Position & Size</div>
+              <div class="prop-row">
+                <div class="prop-field">
+                  <span class="prop-label">X</span>
+                  <input type="number" class="prop-input" value="0" id="prop-x">
+                </div>
+                <div class="prop-field">
+                  <span class="prop-label">Y</span>
+                  <input type="number" class="prop-input" value="0" id="prop-y">
+                </div>
+              </div>
+              <div class="prop-row">
+                <div class="prop-field">
+                  <span class="prop-label">W</span>
+                  <input type="number" class="prop-input" value="1080" id="prop-w">
+                </div>
+                <div class="prop-field">
+                  <span class="prop-label">H</span>
+                  <input type="number" class="prop-input" value="1920" id="prop-h">
+                </div>
+              </div>
+              <div class="prop-row">
+                <div class="prop-field">
+                  <span class="prop-label">Rotation</span>
+                  <input type="number" class="prop-input" value="0" id="prop-rotation" min="0" max="360"> 
+                </div>
+                <div class="prop-field">
+                  <span class="prop-label">Opacity</span>
+                  <input type="number" class="prop-input" value="100" id="prop-opacity" min="0" max="100">
+                </div>
+              </div>
+            </div>
+
+            <div class="prop-section">
+              <div class="prop-section-title">Typography</div>
+              <div class="prop-row">
+                <div class="prop-field" style="flex:2">
+                  <span class="prop-label">Font Family</span>
+                  <select class="prop-input" id="prop-font">
+                    <option>Inter</option>
+                    <option>Roboto</option>
+                    <option>Outfit</option>
+                    <option>Poppins</option>
+                    <option>JetBrains Mono</option>
+                  </select>
+                </div>
+                <div class="prop-field">
+                  <span class="prop-label">Size</span>
+                  <input type="number" class="prop-input" value="48" id="prop-font-size">
+                </div>
+              </div>
+              <div class="prop-row">
+                <div class="prop-field">
+                  <span class="prop-label">Weight</span>
+                  <select class="prop-input" id="prop-font-weight">
+                    <option value="400">Regular</option>
+                    <option value="500">Medium</option>
+                    <option value="600">Semibold</option>
+                    <option value="700" selected>Bold</option>
+                    <option value="800">Extrabold</option>
+                    <option value="900">Black</option>
+                  </select>
+                </div>
+                <div class="prop-field">
+                  <span class="prop-label">Align</span>
+                  <select class="prop-input" id="prop-text-align">
+                    <option>Left</option>
+                    <option>Center</option>
+                    <option>Right</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="prop-section">
+              <div class="prop-section-title">Fill & Stroke</div>
+              <div class="prop-row">
+                <div class="prop-field">
+                  <span class="prop-label">Fill Color</span>
+                  <input type="color" class="prop-color" value="#FFFFFF" id="prop-fill-color">
+                </div>
+                <div class="prop-field">
+                  <span class="prop-label">Stroke</span>
+                  <input type="color" class="prop-color" value="#000000" id="prop-stroke-color">
+                </div>
+              </div>
+              <div class="prop-row">
+                <div class="prop-field">
+                  <span class="prop-label">Stroke Width</span>
+                  <input type="number" class="prop-input" value="0" id="prop-stroke-width" min="0">
+                </div>
+              </div>
+            </div>
+
+            <div class="prop-section">
+              <div class="input-slot-section">
+                <div class="input-slot-toggle">
+                  <span class="input-slot-label">☑ Is Input Slot</span>
+                  <div class="toggle-switch active" id="input-slot-toggle"></div>
+                </div>
+                <div class="input-slot-fields" id="input-slot-fields">
+                  <div class="prop-field">
+                    <span class="prop-label">Label</span>
+                    <input type="text" class="prop-input" value="Headline" id="slot-label">
+                  </div>
+                  <div class="prop-field">
+                    <span class="prop-label">Type</span>
+                    <select class="prop-input" id="slot-type">
+                      <option value="text" selected>Text</option>
+                      <option value="image">Image</option>
+                      <option value="select">Select</option>
+                      <option value="date">Date</option>
+                      <option value="color">Color</option>
+                    </select>
+                  </div>
+                  <div class="prop-field">
+                    <span class="prop-label">Max Length</span>
+                    <input type="number" class="prop-input" value="80" id="slot-max-length">
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <input type="checkbox" checked id="slot-required" style="width:16px;height:16px;accent-color:var(--accent)">
+                    <span class="prop-label" style="margin:0">Required</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scene Timeline -->
+          <div class="scene-timeline">
+            <div class="scene-track">
+              <div class="scene-block active">
+                <span>Intro</span>
+                <span class="scene-duration">3s</span>
+              </div>
+              <span class="scene-arrow">→</span>
+              <div class="scene-block">
+                <span>Body</span>
+                <span class="scene-duration">5s</span>
+              </div>
+              <span class="scene-arrow">→</span>
+              <div class="scene-block">
+                <span>Outro</span>
+                <span class="scene-duration">2s</span>
+              </div>
+            </div>
+            <button class="btn btn-secondary btn-sm">+ Scene</button>
+            <button class="btn btn-primary btn-sm">▶ Preview</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════
+           PAGE: Analytics
+           ═══════════════════════════════════════════ -->
+      <div class="page-content page-section" id="page-analytics" style="display:none">
+        <div class="analytics-tabs" id="analytics-tabs">
+          <div class="analytics-tab active" data-tab="overview">Overview</div>
+          <div class="analytics-tab" data-tab="templates">Templates</div>
+          <div class="analytics-tab" data-tab="users-analytics">Users</div>
+          <div class="analytics-tab" data-tab="ai-usage">AI Usage</div>
+        </div>
+
+        <!-- Overview Tab -->
+        <div class="analytics-tab-content active" id="tab-overview">
+          <div class="metrics-grid" style="margin-bottom:24px">
+            <div class="metric-card">
+              <div class="metric-card-header">
+                <div class="metric-card-icon blue">📊</div>
+                <span class="metric-card-change positive">+12%</span>
+              </div>
+              <div class="metric-card-value">483</div>
+              <div class="metric-card-label">Daily Active Users</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-header">
+                <div class="metric-card-icon green">📅</div>
+                <span class="metric-card-change positive">+8%</span>
+              </div>
+              <div class="metric-card-value">1,247</div>
+              <div class="metric-card-label">Monthly Active Users</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-header">
+                <div class="metric-card-icon amber">📤</div>
+                <span class="metric-card-change positive">+22%</span>
+              </div>
+              <div class="metric-card-value">2,841</div>
+              <div class="metric-card-label">Total Exports This Week</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-header">
+                <div class="metric-card-icon purple">🆕</div>
+                <span class="metric-card-change positive">+31</span>
+              </div>
+              <div class="metric-card-value">127</div>
+              <div class="metric-card-label">New Signups Today</div>
+            </div>
+          </div>
+
+          <div class="analytics-grid">
+            <div class="chart-card analytics-grid-full">
+              <div class="chart-card-header">
+                <div>
+                  <div class="chart-card-title">Exports — Last 7 Days</div>
+                  <div class="chart-card-subtitle">Total: 2,841 exports</div>
+                </div>
+              </div>
+              <div class="bar-chart" id="exports-chart">
+                <!-- Filled by JS -->
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <div class="chart-card-title">Top Categories</div>
+              </div>
+              <div id="categories-chart"></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <div class="chart-card-title">AI Usage</div>
+              </div>
+              <div id="ai-usage-chart"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Templates Analytics Tab -->
+        <div class="analytics-tab-content" id="tab-templates" style="display:none">
+          <div class="table-card">
+            <div class="table-header">
+              <h3>Template Performance</h3>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Template</th>
+                  <th>Downloads</th>
+                  <th>Exports</th>
+                  <th>Conv. Rate</th>
+                </tr>
+              </thead>
+              <tbody id="template-performance-table">
+                <!-- Filled by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Users Analytics Tab -->
+        <div class="analytics-tab-content" id="tab-users-analytics" style="display:none">
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-card-header"><div class="metric-card-icon green">👤</div></div>
+              <div class="metric-card-value">1,247</div>
+              <div class="metric-card-label">Total Users</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-header"><div class="metric-card-icon blue">🔄</div></div>
+              <div class="metric-card-value">68%</div>
+              <div class="metric-card-label">Day 1 Retention</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-header"><div class="metric-card-icon amber">📆</div></div>
+              <div class="metric-card-value">42%</div>
+              <div class="metric-card-label">Day 7 Retention</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-header"><div class="metric-card-icon purple">💎</div></div>
+              <div class="metric-card-value">100%</div>
+              <div class="metric-card-label">Free Tier (v1)</div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-card-title">New Users — Last 7 Days</div>
+            </div>
+            <div class="bar-chart" id="new-users-chart"></div>
+          </div>
+        </div>
+
+        <!-- AI Usage Tab -->
+        <div class="analytics-tab-content" id="tab-ai-usage" style="display:none">
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-card-header"><div class="metric-card-icon blue">🎙️</div></div>
+              <div class="metric-card-value">56</div>
+              <div class="metric-card-label">Voice Generations Today</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-header"><div class="metric-card-icon purple">✍️</div></div>
+              <div class="metric-card-value">33</div>
+              <div class="metric-card-label">Script Generations Today</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-header"><div class="metric-card-icon green">💰</div></div>
+              <div class="metric-card-value">$0.00</div>
+              <div class="metric-card-label">API Cost Today (Free Tier)</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-header"><div class="metric-card-icon amber">🔤</div></div>
+              <div class="metric-card-value">42K</div>
+              <div class="metric-card-label">Tokens Consumed</div>
+            </div>
+          </div>
+          <div class="analytics-grid">
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <div class="chart-card-title">Voice Languages Used</div>
+              </div>
+              <div id="voice-languages-chart"></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <div class="chart-card-title">Script Tones Used</div>
+              </div>
+              <div id="script-tones-chart"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════
+           PAGE: User Management
+           ═══════════════════════════════════════════ -->
+      <div class="page-content page-section" id="page-users" style="display:none">
+        <div class="metrics-grid" style="margin-bottom:24px">
+          <div class="metric-card">
+            <div class="metric-card-header"><div class="metric-card-icon green">👥</div></div>
+            <div class="metric-card-value">1,247</div>
+            <div class="metric-card-label">Total Users</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-card-header"><div class="metric-card-icon blue">🆕</div></div>
+            <div class="metric-card-value">127</div>
+            <div class="metric-card-label">New Today</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-card-header"><div class="metric-card-icon amber">⚡</div></div>
+            <div class="metric-card-value">483</div>
+            <div class="metric-card-label">Active Today</div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <h3>All Users</h3>
+            <input type="text" class="table-search" placeholder="Search users..." id="user-search">
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Plan</th>
+                <th>Exports</th>
+                <th>AI Usage</th>
+                <th>Joined</th>
+                <th>Last Active</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-table-body">
+              <!-- Filled by JS -->
+            </tbody>
+          </table>
+          <div class="table-footer">
+            <span>Showing 10 of 1,247 users</span>
+            <div class="pagination">
+              <button class="active">1</button>
+              <button>2</button>
+              <button>3</button>
+              <button>...</button>
+              <button>125</button>
+              <button>→</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Toast -->
+  <div class="admin-toast" id="admin-toast">
+    <span id="admin-toast-icon">✓</span>
+    <span id="admin-toast-message">Action completed</span>
+  </div>
+
+  <script>
+    // Dynamic API configuration detection (local fallback or prod Space URL)
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      window.NF_ADMIN_API_BASE = 'http://localhost:8000';
+    } else {
+      // Replace with your actual HuggingFace Space production URL
+      window.NF_ADMIN_API_BASE = 'https://goat1242-newsforge-api.hf.space';
+    }
+  </script>
+  <script src="api.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

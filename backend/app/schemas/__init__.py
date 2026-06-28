@@ -1,0 +1,1 @@
+# NewsForge Schemas Package
