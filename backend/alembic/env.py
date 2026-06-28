@@ -29,11 +29,30 @@ if db_url.startswith("postgresql://"):
 elif db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
 
-# Handle Neon/Supabase sslmode=require parameter which is unsupported by asyncpg
-if "sslmode=" in db_url:
-    db_url = db_url.replace("sslmode=require", "ssl=require")
-    db_url = db_url.replace("sslmode=prefer", "ssl=prefer")
-    db_url = db_url.replace("sslmode=disable", "")
+# Handle Neon/Supabase/Render query params unsupported by asyncpg (e.g. channel_binding, sslmode)
+try:
+    from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
+    parsed = urlparse(db_url)
+    qsl = parse_qsl(parsed.query)
+    allowed_params = []
+    for key, val in qsl:
+        if key == "sslmode":
+            if val in ("require", "prefer"):
+                allowed_params.append(("ssl", "require"))
+        elif key in ("ssl", "timeout", "command_timeout", "server_settings"):
+            allowed_params.append((key, val))
+    
+    new_query = urlencode(allowed_params)
+    db_url = urlunparse(parsed._replace(query=new_query))
+except Exception:
+    # Fallback to simple replace if parsing fails
+    if "sslmode=" in db_url:
+        db_url = db_url.replace("sslmode=require", "ssl=require")
+        db_url = db_url.replace("sslmode=prefer", "ssl=prefer")
+        db_url = db_url.replace("sslmode=disable", "")
+    if "channel_binding=" in db_url:
+        import re
+        db_url = re.sub(r'[&?]channel_binding=[^&]*', '', db_url)
 
 # Set database URL from our settings
 config.set_main_option("sqlalchemy.url", db_url)
