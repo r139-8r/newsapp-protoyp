@@ -9,12 +9,18 @@ from sqlalchemy.orm import DeclarativeBase
 from app.config import settings
 
 
-# Process database URL to ensure it uses the asyncpg driver
+# Process database URL to ensure it uses the asyncpg driver and handles SSL correctly
 db_url = settings.DATABASE_URL
 if db_url.startswith("postgresql://"):
     db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 elif db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
+
+# Handle Neon/Supabase sslmode=require parameter which is unsupported by asyncpg
+if "sslmode=" in db_url:
+    db_url = db_url.replace("sslmode=require", "ssl=require")
+    db_url = db_url.replace("sslmode=prefer", "ssl=prefer")
+    db_url = db_url.replace("sslmode=disable", "")
 
 # Create async engine
 engine = create_async_engine(
