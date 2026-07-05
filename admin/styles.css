@@ -975,11 +975,55 @@ td {
 }
 
 .canvas-wrapper {
-  background: #fff;
   box-shadow: var(--shadow-lg);
   border-radius: 4px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.canvas-wrapper canvas {
+  border-radius: 4px;
+}
+
+/* ── Toolbar Meta Inputs ── */
+.toolbar-meta {
+  gap: 8px !important;
+}
+
+.toolbar-name-input {
+  padding: 5px 12px;
+  background: var(--bg-input);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  width: 180px;
+  transition: border-color var(--transition-fast);
+}
+
+.toolbar-name-input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.toolbar-meta-select {
+  padding: 5px 10px;
+  background: var(--bg-input);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  appearance: none;
+  padding-right: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
 }
 
 .canvas-size-label {

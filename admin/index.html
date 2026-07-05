@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="NewsForge Admin Dashboard — Manage templates, users, and analytics.">
   <title>NewsForge — Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Roboto:wght@400;500;700;900&family=Outfit:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" crossorigin>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/6.5.1/fabric.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -110,7 +113,7 @@
               <div class="metric-card-icon blue">📰</div>
               <span class="metric-card-change positive">+3 this week</span>
             </div>
-            <div class="metric-card-value">20</div>
+            <div class="metric-card-value" id="stat-total-templates">—</div>
             <div class="metric-card-label">Total Templates</div>
           </div>
           <div class="metric-card">
@@ -118,7 +121,7 @@
               <div class="metric-card-icon green">👥</div>
               <span class="metric-card-change positive">+127 today</span>
             </div>
-            <div class="metric-card-value">1,247</div>
+            <div class="metric-card-value" id="stat-total-users">—</div>
             <div class="metric-card-label">Total Users</div>
           </div>
           <div class="metric-card">
@@ -126,7 +129,7 @@
               <div class="metric-card-icon amber">📤</div>
               <span class="metric-card-change positive">+18%</span>
             </div>
-            <div class="metric-card-value">342</div>
+            <div class="metric-card-value" id="stat-exports-today">—</div>
             <div class="metric-card-label">Exports Today</div>
           </div>
           <div class="metric-card">
@@ -134,8 +137,8 @@
               <div class="metric-card-icon purple">🤖</div>
               <span class="metric-card-change positive">+24%</span>
             </div>
-            <div class="metric-card-value">89</div>
-            <div class="metric-card-label">AI Generations Today</div>
+            <div class="metric-card-value" id="stat-dau">—</div>
+            <div class="metric-card-label">Daily Active Users</div>
           </div>
         </div>
 
@@ -237,7 +240,7 @@
           <!-- Toolbar -->
           <div class="editor-toolbar">
             <div class="toolbar-group">
-              <div class="toolbar-btn active" data-tool="text">
+              <div class="toolbar-btn" data-tool="text">
                 <span class="toolbar-btn-icon">T</span>
                 <span>Text</span>
               </div>
@@ -245,39 +248,53 @@
                 <span class="toolbar-btn-icon">🖼️</span>
                 <span>Image</span>
               </div>
-              <div class="toolbar-btn" data-tool="shape">
+              <div class="toolbar-btn" data-tool="rect">
                 <span class="toolbar-btn-icon">⬜</span>
-                <span>Shape</span>
+                <span>Rect</span>
               </div>
-              <div class="toolbar-btn" data-tool="icon">
-                <span class="toolbar-btn-icon">⭐</span>
-                <span>Icon</span>
+              <div class="toolbar-btn" data-tool="circle">
+                <span class="toolbar-btn-icon">⭕</span>
+                <span>Circle</span>
               </div>
               <div class="toolbar-btn" data-tool="line">
                 <span class="toolbar-btn-icon">━</span>
                 <span>Line</span>
               </div>
-              <div class="toolbar-btn" data-tool="bg">
-                <span class="toolbar-btn-icon">🎨</span>
-                <span>Background</span>
+              <div class="toolbar-btn" data-tool="delete">
+                <span class="toolbar-btn-icon">🗑️</span>
+                <span>Delete</span>
               </div>
             </div>
             <div class="toolbar-divider"></div>
-            <div class="toolbar-group">
-              <div class="toolbar-btn" title="Undo">
-                <span class="toolbar-btn-icon">↩️</span>
-                <span>Undo</span>
-              </div>
-              <div class="toolbar-btn" title="Redo">
-                <span class="toolbar-btn-icon">↪️</span>
-                <span>Redo</span>
-              </div>
+            <!-- Template Metadata -->
+            <div class="toolbar-group toolbar-meta">
+              <input type="text" id="editor-template-name-input" class="toolbar-name-input" placeholder="Template Name" value="Untitled Template">
+              <select id="editor-category" class="toolbar-meta-select">
+                <option value="breaking_news">Breaking News</option>
+                <option value="sports">Sports</option>
+                <option value="weather">Weather</option>
+                <option value="politics">Politics</option>
+                <option value="entertainment">Entertainment</option>
+                <option value="business">Business</option>
+              </select>
+              <select id="editor-format" class="toolbar-meta-select">
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+              </select>
+              <select id="editor-aspect-ratio" class="toolbar-meta-select">
+                <option value="story" selected>Story (9:16)</option>
+                <option value="post">Post (1:1)</option>
+                <option value="landscape">Landscape (16:9)</option>
+              </select>
+              <select id="editor-pricing" class="toolbar-meta-select">
+                <option value="free">Free</option>
+                <option value="premium">Premium</option>
+              </select>
             </div>
             <div style="flex:1"></div>
             <div class="toolbar-group">
-              <button class="btn btn-ghost btn-sm">Preview as User</button>
-              <button class="btn btn-secondary btn-sm">Save Draft</button>
-              <button class="btn btn-primary btn-sm">Publish</button>
+              <button class="btn btn-secondary btn-sm" id="editor-save-btn">💾 Save Draft</button>
+              <button class="btn btn-primary btn-sm" id="editor-publish-btn">🚀 Publish</button>
             </div>
           </div>
 
@@ -291,11 +308,9 @@
 
           <!-- Canvas Area -->
           <div class="canvas-area">
-            <div class="canvas-wrapper" id="editor-canvas" style="width:270px;height:480px;">
-              <!-- Simulated Canvas Content -->
-              <div id="canvas-content" style="width:100%;height:100%;position:relative;overflow:hidden;">
-                <!-- Canvas elements rendered by JS -->
-              </div>
+            <div class="canvas-wrapper" id="editor-canvas-wrapper">
+              <span class="editor-template-name" style="display:none"></span>
+              <canvas id="fabric-canvas"></canvas>
             </div>
             <div class="canvas-size-label">1080 × 1920 • Zoom: 75%</div>
             <div class="canvas-zoom-controls">
@@ -342,17 +357,17 @@
               </div>
             </div>
 
-            <div class="prop-section">
+            <div class="prop-section" id="text-properties-section" style="display:none">
               <div class="prop-section-title">Typography</div>
               <div class="prop-row">
                 <div class="prop-field" style="flex:2">
                   <span class="prop-label">Font Family</span>
-                  <select class="prop-input" id="prop-font">
-                    <option>Inter</option>
-                    <option>Roboto</option>
-                    <option>Outfit</option>
-                    <option>Poppins</option>
-                    <option>JetBrains Mono</option>
+                  <select class="prop-input" id="prop-font-family">
+                    <option value="Inter, sans-serif">Inter</option>
+                    <option value="Roboto, sans-serif">Roboto</option>
+                    <option value="Outfit, sans-serif">Outfit</option>
+                    <option value="Poppins, sans-serif">Poppins</option>
+                    <option value="monospace">Monospace</option>
                   </select>
                 </div>
                 <div class="prop-field">
@@ -362,23 +377,13 @@
               </div>
               <div class="prop-row">
                 <div class="prop-field">
-                  <span class="prop-label">Weight</span>
-                  <select class="prop-input" id="prop-font-weight">
-                    <option value="400">Regular</option>
-                    <option value="500">Medium</option>
-                    <option value="600">Semibold</option>
-                    <option value="700" selected>Bold</option>
-                    <option value="800">Extrabold</option>
-                    <option value="900">Black</option>
-                  </select>
+                  <button class="btn btn-ghost btn-sm" id="prop-bold" title="Bold"><b>B</b></button>
+                  <button class="btn btn-ghost btn-sm" id="prop-italic" title="Italic"><i>I</i></button>
                 </div>
                 <div class="prop-field">
-                  <span class="prop-label">Align</span>
-                  <select class="prop-input" id="prop-text-align">
-                    <option>Left</option>
-                    <option>Center</option>
-                    <option>Right</option>
-                  </select>
+                  <button class="btn btn-ghost btn-sm text-align-btn" data-align="left" title="Left">⬅</button>
+                  <button class="btn btn-ghost btn-sm text-align-btn" data-align="center" title="Center">⬛</button>
+                  <button class="btn btn-ghost btn-sm text-align-btn" data-align="right" title="Right">➡</button>
                 </div>
               </div>
             </div>
@@ -388,11 +393,17 @@
               <div class="prop-row">
                 <div class="prop-field">
                   <span class="prop-label">Fill Color</span>
-                  <input type="color" class="prop-color" value="#FFFFFF" id="prop-fill-color">
+                  <div style="display:flex;gap:6px;align-items:center;">
+                    <input type="color" class="prop-color" value="#FFFFFF" id="prop-fill-color">
+                    <input type="text" class="prop-input" value="#FFFFFF" id="prop-fill-color-hex" style="width:75px;font-size:12px;text-transform:uppercase" placeholder="#FFFFFF">
+                  </div>
                 </div>
                 <div class="prop-field">
                   <span class="prop-label">Stroke</span>
-                  <input type="color" class="prop-color" value="#000000" id="prop-stroke-color">
+                  <div style="display:flex;gap:6px;align-items:center;">
+                    <input type="color" class="prop-color" value="#000000" id="prop-stroke-color">
+                    <input type="text" class="prop-input" value="#000000" id="prop-stroke-color-hex" style="width:75px;font-size:12px;text-transform:uppercase" placeholder="#000000">
+                  </div>
                 </div>
               </div>
               <div class="prop-row">
@@ -403,36 +414,11 @@
               </div>
             </div>
 
-            <div class="prop-section">
-              <div class="input-slot-section">
-                <div class="input-slot-toggle">
-                  <span class="input-slot-label">☑ Is Input Slot</span>
-                  <div class="toggle-switch active" id="input-slot-toggle"></div>
-                </div>
-                <div class="input-slot-fields" id="input-slot-fields">
-                  <div class="prop-field">
-                    <span class="prop-label">Label</span>
-                    <input type="text" class="prop-input" value="Headline" id="slot-label">
-                  </div>
-                  <div class="prop-field">
-                    <span class="prop-label">Type</span>
-                    <select class="prop-input" id="slot-type">
-                      <option value="text" selected>Text</option>
-                      <option value="image">Image</option>
-                      <option value="select">Select</option>
-                      <option value="date">Date</option>
-                      <option value="color">Color</option>
-                    </select>
-                  </div>
-                  <div class="prop-field">
-                    <span class="prop-label">Max Length</span>
-                    <input type="number" class="prop-input" value="80" id="slot-max-length">
-                  </div>
-                  <div style="display:flex;align-items:center;gap:8px">
-                    <input type="checkbox" checked id="slot-required" style="width:16px;height:16px;accent-color:var(--accent)">
-                    <span class="prop-label" style="margin:0">Required</span>
-                  </div>
-                </div>
+            <div class="prop-section" id="slots-manager-section">
+              <div class="prop-section-title">Input Slots Manager</div>
+              <button class="btn btn-secondary btn-sm" id="btn-add-slot" style="width:100%;margin-bottom:12px">➕ Add Input Slot</button>
+              <div id="slots-manager-list" style="display:flex;flex-direction:column;gap:12px;max-height:350px;overflow-y:auto;padding-right:4px;">
+                <!-- Dynamically generated list of template slots -->
               </div>
             </div>
           </div>

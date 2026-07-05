@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     MISTRAL_MODEL: str = "ministral-8b-2512"
 
     # ── CORS ──
-    CORS_ORIGINS: str = "http://localhost:5500,http://localhost:3000,http://127.0.0.1:5500"
+    CORS_ORIGINS: str = "http://localhost:5500,http://localhost:3000,http://127.0.0.1:5500,*"
 
     # ── Admin ──
     ADMIN_IP_ALLOWLIST: str = ""

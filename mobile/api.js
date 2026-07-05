@@ -39,11 +39,15 @@ async function apiFetch(path, options = {}, retried = false) {
 
   // Auto-refresh on 401
   if (res.status === 401 && !retried) {
-    const refreshed = await tryRefreshToken();
-    if (refreshed) return apiFetch(path, options, true);
+    const hasRefreshToken = !!Auth.getRefreshToken();
+    if (hasRefreshToken) {
+      const refreshed = await tryRefreshToken();
+      if (refreshed) return apiFetch(path, options, true);
+      Auth.clearTokens();
+      location.reload();
+      return;
+    }
     Auth.clearTokens();
-    location.reload();
-    return;
   }
 
   if (!res.ok) {
@@ -288,14 +292,24 @@ const AccountAPI = {
 
 // ── Export Tracking ──
 const ExportsAPI = {
-  async logExport(templateId, format, sizeName) {
-    return apiFetch('/api/exports/log', {
-      method: 'POST',
-      body: JSON.stringify({
-        template_id: templateId,
+  async logExport(templateIdOrParams, format, sizeName) {
+    let body;
+    if (typeof templateIdOrParams === 'object') {
+      body = {
+        template_id: templateIdOrParams.template_id,
+        output_format: templateIdOrParams.format || templateIdOrParams.output_format,
+        output_size_name: templateIdOrParams.size || templateIdOrParams.output_size_name,
+      };
+    } else {
+      body = {
+        template_id: templateIdOrParams,
         output_format: format,
         output_size_name: sizeName,
-      }),
+      };
+    }
+    return apiFetch('/api/exports/log', {
+      method: 'POST',
+      body: JSON.stringify(body),
     });
   },
 };

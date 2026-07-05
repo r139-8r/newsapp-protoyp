@@ -15,6 +15,8 @@ const state = {
   currentProjectId: null,      // ID of the project being edited
   availableVoices: [],         // Loaded from API
   templateCache: [],           // OTA-synced templates
+  fabricPreviewCanvas: null,   // Fabric.js canvas for fill screen preview
+  slotValues: {},              // User-filled input slot values
   fillData: {
     headline: '',
     source: '',
@@ -340,15 +342,18 @@ async function renderTemplateGrid(search = '') {
       const outputSizes = t.output_sizes || {};
       const sizes = Object.keys(outputSizes);
       const firstSize = sizes[0] || 'story';
+      const thumbnailStyle = t.thumbnail_url
+        ? `background-image:url(${t.thumbnail_url});background-size:cover;background-position:center`
+        : `background:${gradient}`;
       return `
       <div class="template-card" data-id="${t.id}">
-        <div class="template-card-thumb" style="background:${gradient}">
+        <div class="template-card-thumb" style="${thumbnailStyle}">
           <div class="template-card-badges">
             <span class="badge badge-format ${t.format === 'video' ? 'video' : ''}">${t.format}</span>
             <span class="badge badge-size">${firstSize}</span>
             ${t.pricing === 'free' ? '' : '<span class="badge badge-new">Pro ⭐</span>'}
           </div>
-          <span style="font-size:48px;opacity:0.5;position:absolute;bottom:30%;left:50%;transform:translateX(-50%)">📰</span>
+          ${t.thumbnail_url ? '' : '<span style="font-size:48px;opacity:0.5;position:absolute;bottom:30%;left:50%;transform:translateX(-50%)">📰</span>'}
         </div>
         <div class="template-card-info">
           <div class="template-card-name">${t.name}</div>
@@ -455,68 +460,11 @@ async function openTemplatePreview(id) {
 }
 
 // ================================================================
-// FILL SCREEN
+// FILL SCREEN (Fabric.js Canvas + Dynamic Form)
 // ================================================================
 function initFillScreen() {
-  const headline = document.getElementById('fill-headline');
-  const counter = document.getElementById('headline-counter');
-  const source = document.getElementById('fill-source');
-  const dateInput = document.getElementById('fill-date');
-  const imagePicker = document.getElementById('fill-image-picker');
-  const imageInput = document.getElementById('fill-image-input');
   const exportBtn = document.getElementById('fill-export-btn');
   const aiBtn = document.getElementById('fill-ai-btn');
-
-  // Live preview updates
-  headline.addEventListener('input', () => {
-    const len = headline.value.length;
-    counter.textContent = `${len}/80`;
-    counter.className = 'char-counter' + (len > 70 ? ' warn' : '') + (len > 80 ? ' error' : '');
-    document.getElementById('fill-preview-headline').textContent = headline.value || 'Your headline will appear here';
-    state.fillData.headline = headline.value;
-    checkFillReady();
-  });
-
-  source.addEventListener('input', () => {
-    state.fillData.source = source.value;
-    document.getElementById('fill-preview-source').textContent =
-      (source.value || 'Source') + ' • ' + (dateInput.value || 'Date');
-  });
-
-  dateInput.addEventListener('change', () => {
-    state.fillData.date = dateInput.value;
-    document.getElementById('fill-preview-source').textContent =
-      (source.value || 'Source') + ' • ' + (dateInput.value || 'Date');
-    checkFillReady();
-  });
-
-  // Image picker
-  imagePicker.addEventListener('click', () => imageInput.click());
-  imageInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        imagePicker.innerHTML = `<img src="${ev.target.result}" alt="Uploaded photo">`;
-        imagePicker.classList.add('has-image');
-        state.fillData.hasImage = true;
-
-        // Update preview bg
-        document.getElementById('fill-preview-bg').style.cssText = `
-          background-image: url(${ev.target.result});
-          background-size: cover;
-          background-position: center;
-          filter: brightness(0.4);
-        `;
-        checkFillReady();
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-
-  // Set today's date
-  dateInput.value = new Date().toISOString().split('T')[0];
-  state.fillData.date = dateInput.value;
 
   // Export button
   exportBtn.addEventListener('click', () => openExportScreen());
@@ -526,42 +474,272 @@ function initFillScreen() {
 
   // Back
   document.getElementById('fill-back-btn').addEventListener('click', () => {
+    // Dispose preview canvas on exit
+    if (state.fabricPreviewCanvas) {
+      state.fabricPreviewCanvas.dispose();
+      state.fabricPreviewCanvas = null;
+    }
     showScreen('preview-screen');
   });
 }
 
 function openFillScreen(template) {
   state.selectedTemplate = template;
+  state.slotValues = {};
   document.getElementById('fill-template-name').textContent = template.name;
 
-  // Set preview styling
-  const previewBg = document.getElementById('fill-preview-bg');
-  previewBg.style.background = template.gradient;
-  previewBg.style.width = '100%';
-  previewBg.style.height = '100%';
+  showScreen('fill-screen');
 
-  const badge = document.getElementById('fill-preview-badge');
-  badge.textContent = capitalize(template.category).toUpperCase();
-  badge.style.background = template.color;
+  // Initialize Fabric.js preview canvas
+  initFillCanvas(template);
 
-  // Reset form
-  document.getElementById('fill-headline').value = '';
-  document.getElementById('fill-source').value = '';
-  document.getElementById('headline-counter').textContent = '0/80';
-  document.getElementById('fill-preview-headline').textContent = 'Your headline will appear here';
-  document.getElementById('fill-preview-source').textContent = 'Source • Date';
-  state.fillData = { headline: '', source: '', date: document.getElementById('fill-date').value, category: template.category, hasImage: false };
-  checkFillReady();
+  // Generate dynamic form from input_slots
+  generateDynamicForm(template);
 
   // Voice indicator
   document.getElementById('voice-indicator-container').style.display = state.hasVoiceAttached ? 'block' : 'none';
 
-  showScreen('fill-screen');
+  // Enable export immediately (user can export with defaults)
+  document.getElementById('fill-export-btn').disabled = false;
+}
+
+function initFillCanvas(template) {
+  const container = document.getElementById('fill-canvas');
+  if (!container) return;
+
+  // Dispose previous
+  if (state.fabricPreviewCanvas) {
+    state.fabricPreviewCanvas.dispose();
+    state.fabricPreviewCanvas = null;
+  }
+
+  // Recreate the DOM element to avoid Fabric.js canvas reuse bugs
+  container.innerHTML = '<canvas id="fabric-preview-canvas"></canvas>';
+  const canvasEl = document.getElementById('fabric-preview-canvas');
+  if (!canvasEl) return;
+
+  // Size the canvas to fit the container while maintaining aspect ratio
+  const containerW = container.clientWidth || 300;
+  const canvasBaseW = template.canvas_data?.canvas_width || 1080;
+  const canvasBaseH = template.canvas_data?.canvas_height || 1920;
+  const aspectRatio = canvasBaseH / canvasBaseW;
+  const displayW = containerW;
+  const displayH = Math.round(containerW * aspectRatio);
+
+  canvasEl.width = displayW;
+  canvasEl.height = displayH;
+
+  state.fabricPreviewCanvas = new fabric.StaticCanvas('fabric-preview-canvas', {
+    width: displayW,
+    height: displayH,
+    backgroundColor: template.canvas_data?.background || '#1a1a1a',
+  });
+
+  const zoomFactor = displayW / canvasBaseW;
+  state.fabricPreviewCanvas.setZoom(zoomFactor);
+
+  // Load canvas data if available
+  if (template.canvas_data?.fabricJSON) {
+    const done = () => {
+      state.fabricPreviewCanvas.renderAll();
+    };
+    try {
+      const res = state.fabricPreviewCanvas.loadFromJSON(template.canvas_data.fabricJSON, done);
+      if (res && typeof res.then === 'function') {
+        res.then(done);
+      }
+    } catch (e) {
+      console.error('[FillCanvas] loadFromJSON error:', e);
+    }
+  } else {
+    // Fallback: show gradient background with a placeholder
+    const bg = template.canvas_data?.gradient || template.canvas_data?.background || '#1F2937';
+    state.fabricPreviewCanvas.backgroundColor = template.canvas_data?.background || '#1a1a1a';
+    state.fabricPreviewCanvas.renderAll();
+  }
+}
+
+function generateDynamicForm(template) {
+  const container = document.getElementById('fill-dynamic-fields');
+  if (!container) return;
+
+  const inputSlots = template.input_slots || [];
+
+  // If template has no input_slots, show a minimal headline+source form
+  if (!inputSlots.length) {
+    container.innerHTML = `
+      <div class="input-group">
+        <label>Headline</label>
+        <input type="text" id="fill-slot-headline" placeholder="Enter your headline..." maxlength="80" data-slot-id="headline">
+        <span class="char-counter">0/80</span>
+      </div>
+      <div class="input-group">
+        <label>Source</label>
+        <input type="text" id="fill-slot-source" placeholder="e.g., NewsForge Media" data-slot-id="source">
+      </div>
+    `;
+    bindSlotListeners(container);
+    return;
+  }
+
+  // Generate form fields from input_slots
+  container.innerHTML = inputSlots.map(slot => {
+    const slotId = slot.slot_id || slot.id;
+    const label = slot.label || slotId;
+    const type = slot.type || 'text';
+    const maxChars = slot.constraints?.max_length || slot.max_chars || 200;
+    const placeholder = slot.constraints?.placeholder || slot.placeholder || `Enter ${label.toLowerCase()}...`;
+    const required = slot.constraints?.required || slot.required || false;
+
+    if (type === 'text') {
+      return `
+        <div class="input-group">
+          <label>${label}${required ? ' *' : ''}</label>
+          <input type="text" id="fill-slot-${slotId}" placeholder="${placeholder}" maxlength="${maxChars}" data-slot-id="${slotId}" data-target="${slot.target_object_id || slotId}">
+          <span class="char-counter">0/${maxChars}</span>
+        </div>
+      `;
+    } else if (type === 'image') {
+      return `
+        <div class="input-group">
+          <label>${label}</label>
+          <div class="image-picker" id="fill-image-picker-${slotId}" data-slot-id="${slotId}" data-target="${slot.target_object_id || slotId}">
+            <input type="file" accept="image/*" id="fill-image-input-${slotId}" style="display:none">
+            <span class="image-picker-icon">📷</span>
+            <span class="image-picker-text">Tap to upload photo</span>
+          </div>
+        </div>
+      `;
+    } else if (type === 'select') {
+      const options = slot.options || [];
+      return `
+        <div class="input-group">
+          <label>${label}</label>
+          <select id="fill-slot-${slotId}" data-slot-id="${slotId}" data-target="${slot.target_object_id || slotId}">
+            ${options.map(o => `<option value="${o}">${o}</option>`).join('')}
+          </select>
+        </div>
+      `;
+    } else if (type === 'date') {
+      return `
+        <div class="input-group">
+          <label>${label}</label>
+          <input type="date" id="fill-slot-${slotId}" data-slot-id="${slotId}" data-target="${slot.target_object_id || slotId}" value="${new Date().toISOString().split('T')[0]}">
+        </div>
+      `;
+    } else {
+      return `
+        <div class="input-group">
+          <label>${label}</label>
+          <input type="text" id="fill-slot-${slotId}" placeholder="${placeholder}" data-slot-id="${slotId}" data-target="${slot.target_object_id || slotId}">
+        </div>
+      `;
+    }
+  }).join('');
+
+  bindSlotListeners(container);
+}
+
+function bindSlotListeners(container) {
+  // Text inputs — update canvas + char counter
+  container.querySelectorAll('input[type="text"]').forEach(input => {
+    const counter = input.parentElement.querySelector('.char-counter');
+    input.addEventListener('input', () => {
+      const slotId = input.dataset.slotId;
+      const targetId = input.dataset.target || slotId;
+      state.slotValues[slotId] = input.value;
+
+      if (counter) {
+        const max = input.maxLength || 200;
+        counter.textContent = `${input.value.length}/${max}`;
+      }
+
+      // Update Fabric.js canvas object
+      updateCanvasSlot(targetId, input.value);
+    });
+  });
+
+  // Select inputs
+  container.querySelectorAll('select').forEach(select => {
+    select.addEventListener('change', () => {
+      const slotId = select.dataset.slotId;
+      const targetId = select.dataset.target || slotId;
+      state.slotValues[slotId] = select.value;
+      updateCanvasSlot(targetId, select.value);
+    });
+  });
+
+  // Date inputs
+  container.querySelectorAll('input[type="date"]').forEach(input => {
+    input.addEventListener('change', () => {
+      const slotId = input.dataset.slotId;
+      const targetId = input.dataset.target || slotId;
+      state.slotValues[slotId] = input.value;
+      updateCanvasSlot(targetId, input.value);
+    });
+  });
+
+  // Image pickers
+  container.querySelectorAll('.image-picker').forEach(picker => {
+    const fileInput = picker.querySelector('input[type="file"]');
+    picker.addEventListener('click', () => fileInput?.click());
+    fileInput?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        picker.innerHTML = `<img src="${ev.target.result}" alt="Uploaded" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;
+        picker.classList.add('has-image');
+        const slotId = picker.dataset.slotId;
+        const targetId = picker.dataset.target || slotId;
+        state.slotValues[slotId] = ev.target.result;
+        updateCanvasImageSlot(targetId, ev.target.result);
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+}
+
+function updateCanvasSlot(targetId, value) {
+  if (!state.fabricPreviewCanvas) return;
+  const objects = state.fabricPreviewCanvas.getObjects();
+  const target = objects.find(o =>
+    o.id === targetId || o.name === targetId ||
+    o.slot_config?.slot_id === targetId
+  );
+  if (target && (target.type === 'i-text' || target.type === 'textbox' || target.type === 'text')) {
+    target.set('text', value || target.slot_config?.placeholder || '');
+    state.fabricPreviewCanvas.renderAll();
+  }
+}
+
+function updateCanvasImageSlot(targetId, dataUrl) {
+  if (!state.fabricPreviewCanvas) return;
+  const objects = state.fabricPreviewCanvas.getObjects();
+  const target = objects.find(o =>
+    o.id === targetId || o.name === targetId ||
+    o.slot_config?.slot_id === targetId
+  );
+  if (target && target.type === 'image') {
+    // Record original width and height under scaling
+    const origW = (target.width || 100) * (target.scaleX || 1);
+    const origH = (target.height || 100) * (target.scaleY || 1);
+
+    fabric.Image.fromURL(dataUrl, { crossOrigin: 'anonymous' }).then(newImg => {
+      target.setElement(newImg.getElement());
+      // Adjust scales so they fit original visual bounding box
+      target.set({
+        scaleX: origW / (newImg.width || 1),
+        scaleY: origH / (newImg.height || 1)
+      });
+      state.fabricPreviewCanvas.renderAll();
+    });
+  }
 }
 
 function checkFillReady() {
-  const ready = state.fillData.headline.length > 0 && state.fillData.date;
-  document.getElementById('fill-export-btn').disabled = !ready;
+  // With dynamic forms, export is always available once fill screen is open
+  document.getElementById('fill-export-btn').disabled = false;
 }
 
 // ================================================================
@@ -873,36 +1051,80 @@ function openExportScreen() {
   showScreen('export-screen');
 }
 
-function startExport() {
+async function startExport() {
+  const canvas = state.fabricPreviewCanvas;
+  if (!canvas) {
+    showToast('❌', 'No canvas to export');
+    return;
+  }
+
   document.getElementById('export-options-view').style.display = 'none';
   document.getElementById('export-progress-view').style.display = 'block';
   document.getElementById('export-complete-view').style.display = 'none';
 
-  let progress = 0;
   const progressBar = document.getElementById('export-progress-bar');
   const percentEl = document.getElementById('export-percent');
   const labelEl = document.getElementById('export-progress-label');
 
-  const labels = ['Preparing canvas...', 'Rendering layers...', 'Compositing image...', 'Applying effects...', 'Finalizing export...'];
+  const onProgress = (pct, label) => {
+    progressBar.style.width = `${pct}%`;
+    percentEl.textContent = `${Math.round(pct)}%`;
+    labelEl.textContent = label || 'Processing...';
+  };
 
-  const interval = setInterval(() => {
-    progress += Math.random() * 8 + 2;
-    if (progress > 100) progress = 100;
+  // Get selected format and size
+  const formatPill = document.querySelector('#format-pills .option-pill.active');
+  const sizePill = document.querySelector('#size-pills .option-pill.active');
+  const format = formatPill?.dataset?.format || 'png';
+  const sizeName = sizePill?.dataset?.size || 'story';
 
-    progressBar.style.width = `${progress}%`;
-    percentEl.textContent = `${Math.round(progress)}%`;
+  const template = state.selectedTemplate;
+  const outputSizes = template?.output_sizes || { story: { width: 1080, height: 1920 } };
+  const outputSize = outputSizes[sizeName] || outputSizes.story || { width: 1080, height: 1920 };
 
-    const labelIndex = Math.min(Math.floor(progress / 20), labels.length - 1);
-    labelEl.textContent = labels[labelIndex];
+  try {
+    let blob;
+    const fileName = `newsforge_${template?.name?.replace(/\s+/g, '_') || 'export'}_${Date.now()}`;
 
-    if (progress >= 100) {
-      clearInterval(interval);
-      setTimeout(() => {
-        document.getElementById('export-progress-view').style.display = 'none';
-        document.getElementById('export-complete-view').style.display = 'block';
-      }, 500);
+    if (format === 'mp4') {
+      // Video export via FFmpeg.wasm
+      const voiceBlob = state.hasVoiceAttached && state.currentVoiceBlobUrl
+        ? await (await fetch(state.currentVoiceBlobUrl)).blob()
+        : null;
+      const scenes = template?.scenes || null;
+
+      blob = await Renderer.exportVideo(canvas, scenes, voiceBlob, outputSize, onProgress);
+      Renderer.downloadBlob(blob, `${fileName}.mp4`);
+    } else {
+      // Image export
+      blob = await Renderer.exportImage(canvas, format, outputSize, onProgress);
+      Renderer.downloadBlob(blob, `${fileName}.${format}`);
     }
-  }, 150);
+
+    // Show complete
+    setTimeout(() => {
+      document.getElementById('export-progress-view').style.display = 'none';
+      document.getElementById('export-complete-view').style.display = 'block';
+    }, 500);
+
+    // Log export to backend (non-blocking)
+    try {
+      await ExportsAPI.logExport({
+        template_id: template?.id,
+        format,
+        size: sizeName,
+        output_width: outputSize.width,
+        output_height: outputSize.height,
+      });
+    } catch {}
+
+  } catch (err) {
+    console.error('[Export] Failed:', err);
+    showToast('❌', err.message || 'Export failed. Try image format.');
+    // Reset to options view
+    document.getElementById('export-progress-view').style.display = 'none';
+    document.getElementById('export-options-view').style.display = 'flex';
+  }
 }
 
 // ================================================================

@@ -88,6 +88,9 @@ const AdminTemplatesAPI = {
     const qs = new URLSearchParams(params).toString();
     return adminApiFetch(`/admin/templates?${qs}`);
   },
+  async get(id) {
+    return adminApiFetch(`/admin/templates/${id}`);
+  },
   async create(data) {
     return adminApiFetch('/admin/templates', {
       method: 'POST',
@@ -108,6 +111,23 @@ const AdminTemplatesAPI = {
   },
   async delete(id) {
     return adminApiFetch(`/admin/templates/${id}`, { method: 'DELETE' });
+  },
+  async uploadAsset(templateId, file, assetType) {
+    const token = AdminAuth.getToken();
+    const form = new FormData();
+    form.append('file', file);
+    form.append('asset_type', assetType);
+    const res = await fetch(`${API_BASE}/admin/templates/${templateId}/assets`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: form,
+    });
+    if (!res.ok) {
+      let errMsg = `Upload failed (${res.status})`;
+      try { const body = await res.json(); errMsg = body.detail || errMsg; } catch {}
+      throw new Error(errMsg);
+    }
+    return res.json();
   },
 };
 
