@@ -1,86 +1,47 @@
 """
-NewsForge — Cloudflare R2 Storage Service
-Uses boto3 S3-compatible API to upload/delete files in R2.
+NewsForge — Hugging Face Dataset Storage Service
+Uses huggingface_hub to upload and delete files in a public Hugging Face Dataset.
+Acts as a completely free storage bucket replacement.
 """
 
 import asyncio
+import os
 from typing import Optional
-from functools import lru_cache
-
-import boto3
-from botocore.config import Config
-from botocore.exceptions import ClientError
-
+from huggingface_hub import HfApi
 from app.config import settings
 
-_r2_client = None
+# Initialize HfApi client lazily if token is available
+_hf_api = None
 
+def _get_hf_api() -> Optional[HfApi]:
+    """Lazily initialize the HfApi client using settings or environment variables."""
+    global _hf_api
+    if _hf_api is not None:
+        return _hf_api
 
-def _get_r2_client():
-    """Lazily create the S3 client, supporting Backblaze B2 or Cloudflare R2."""
-    global _r2_client
-    if _r2_client is not None:
-        return _r2_client
-
-    # 1. Check if Backblaze B2 is configured
-    if all([settings.B2_ENDPOINT_URL, settings.B2_ACCESS_KEY_ID, settings.B2_SECRET_ACCESS_KEY]):
-        endpoint = settings.B2_ENDPOINT_URL
-        if not endpoint.startswith("http://") and not endpoint.startswith("https://"):
-            endpoint = f"https://{endpoint}"
-        
-        _r2_client = boto3.client(
-            "s3",
-            endpoint_url=endpoint,
-            aws_access_key_id=settings.B2_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.B2_SECRET_ACCESS_KEY,
-            config=Config(
-                retries={"max_attempts": 3, "mode": "adaptive"},
-            ),
+    token = settings.HF_TOKEN or os.environ.get("HF_TOKEN")
+    if not token:
+        print(
+            "[WARNING] HF_TOKEN is not configured. "
+            "File uploads will return placeholder URLs. "
+            "Configure HF_TOKEN in your Space settings for storage updates."
         )
-        return _r2_client
+        return None
 
-    # 2. Fall back to Cloudflare R2
-    if not all([settings.R2_ACCOUNT_ID, settings.R2_ACCESS_KEY_ID, settings.R2_SECRET_ACCESS_KEY]):
-        raise RuntimeError(
-            "Neither Backblaze B2 nor Cloudflare R2 credentials are fully configured. "
-            "Configure either B2_ENDPOINT_URL/B2_ACCESS_KEY_ID/B2_SECRET_ACCESS_KEY "
-            "or R2_ACCOUNT_ID/R2_ACCESS_KEY_ID/R2_SECRET_ACCESS_KEY."
-        )
-
-    _r2_client = boto3.client(
-        "s3",
-        endpoint_url=f"https://{settings.R2_ACCOUNT_ID}.r2.cloudflarestorage.com",
-        aws_access_key_id=settings.R2_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.R2_SECRET_ACCESS_KEY,
-        config=Config(
-            retries={"max_attempts": 3, "mode": "adaptive"},
-        ),
-        region_name="auto",
-    )
-    return _r2_client
+    _hf_api = HfApi(token=token)
+    return _hf_api
 
 
-def _get_bucket_name() -> str:
-    """Determine the bucket name based on active provider configuration."""
-    if all([settings.B2_ENDPOINT_URL, settings.B2_ACCESS_KEY_ID, settings.B2_SECRET_ACCESS_KEY]):
-        return settings.B2_BUCKET_NAME or "newsforge"
-    return settings.R2_BUCKET_NAME
+def _get_repo_id() -> str:
+    """Retrieve target dataset repository identifier."""
+    return settings.HF_DATASET_REPO or "goat1242/newsapp"
 
 
-def _public_url(r2_key: str) -> str:
-    """Build the public CDN URL for the uploaded object."""
-    # 1. Backblaze B2 public URL
-    if all([settings.B2_ENDPOINT_URL, settings.B2_ACCESS_KEY_ID, settings.B2_SECRET_ACCESS_KEY]):
-        if settings.B2_PUBLIC_URL:
-            return f"{settings.B2_PUBLIC_URL.rstrip('/')}/{r2_key}"
-        bucket = settings.B2_BUCKET_NAME or "newsforge"
-        endpoint = settings.B2_ENDPOINT_URL.replace("https://", "").replace("http://", "")
-        return f"https://{bucket}.{endpoint}/{r2_key}"
-
-    # 2. Cloudflare R2 public URL
-    if settings.R2_PUBLIC_URL:
-        return f"{settings.R2_PUBLIC_URL.rstrip('/')}/{r2_key}"
-    return f"https://{settings.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/{settings.R2_BUCKET_NAME}/{r2_key}"
+def _public_url(path_in_repo: str) -> str:
+    """Build the public HTTPS URL for an object inside the Hugging Face dataset."""
+    repo = _get_repo_id()
+    # Path inside Hugging Face datasets: https://huggingface.co/datasets/{repo}/resolve/main/{path}
+    return f"https://huggingface.co/datasets/{repo}/resolve/main/{path_in_repo}"
 
 
 async def upload_file(
@@ -89,53 +50,64 @@ async def upload_file(
     content_type: str = "application/octet-stream",
 ) -> str:
     """
-    Upload a file to cloud storage (Backblaze B2 / Cloudflare R2).
-    Returns the public URL of the uploaded object.
-    Runs in thread pool to avoid blocking the event loop.
+    Upload a file to the Hugging Face Dataset repo.
+    Returns the public HTTPS access URL.
+    If HF_TOKEN is not set, degrades gracefully and returns a local placeholder.
+    Runs in a thread pool to avoid blocking FastAPI's event loop.
     """
-    client = _get_r2_client()
-    bucket = _get_bucket_name()
+    # Normalize path inside repo (Hugging Face prefers forward slashes)
+    path_in_repo = r2_key.replace("\\", "/")
+
+    client = _get_hf_api()
+    if client is None:
+        return f"https://placeholder.storage/{path_in_repo}"
+
+    repo_id = _get_repo_id()
 
     def _upload():
-        client.put_object(
-            Bucket=bucket,
-            Key=r2_key,
-            Body=file_bytes,
-            ContentType=content_type,
+        client.upload_file(
+            path_or_fileobj=file_bytes,
+            path_in_repo=path_in_repo,
+            repo_id=repo_id,
+            repo_type="dataset",
         )
 
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(None, _upload)
-    return _public_url(r2_key)
+    return _public_url(path_in_repo)
 
 
 async def delete_file(r2_key: str) -> None:
-    """Delete a file from cloud storage."""
-    client = _get_r2_client()
-    bucket = _get_bucket_name()
+    """
+    Delete a file from the Hugging Face Dataset repo.
+    No-op if storage is not configured.
+    """
+    path_in_repo = r2_key.replace("\\", "/")
+
+    client = _get_hf_api()
+    if client is None:
+        return
+
+    repo_id = _get_repo_id()
 
     def _delete():
         try:
-            client.delete_object(Bucket=bucket, Key=r2_key)
-        except ClientError as e:
-            if e.response["Error"]["Code"] != "NoSuchKey":
-                raise
+            client.delete_file(
+                path_in_repo=path_in_repo,
+                repo_id=repo_id,
+                repo_type="dataset",
+            )
+        except Exception as e:
+            print(f"[Storage] Failed to delete {path_in_repo}: {e}")
 
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(None, _delete)
 
 
 async def generate_presigned_url(r2_key: str, expires_in: int = 3600) -> str:
-    """Generate a presigned URL for temporary private access."""
-    client = _get_r2_client()
-    bucket = _get_bucket_name()
-
-    def _presign():
-        return client.generate_presigned_url(
-            "get_object",
-            Params={"Bucket": bucket, "Key": r2_key},
-            ExpiresIn=expires_in,
-        )
-
-    loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, _presign)
+    """
+    For public HF datasets, files are always publicly accessible.
+    Returns the direct public access URL.
+    """
+    path_in_repo = r2_key.replace("\\", "/")
+    return _public_url(path_in_repo)

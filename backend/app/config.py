@@ -23,19 +23,9 @@ class Settings(BaseSettings):
     FIREBASE_PROJECT_ID: Optional[str] = None
     FIREBASE_CREDENTIALS_PATH: Optional[str] = None
 
-    # ── Cloudflare R2 ──
-    R2_ACCOUNT_ID: Optional[str] = None
-    R2_ACCESS_KEY_ID: Optional[str] = None
-    R2_SECRET_ACCESS_KEY: Optional[str] = None
-    R2_BUCKET_NAME: str = "newsforge"
-    R2_PUBLIC_URL: Optional[str] = None
-
-    # ── Backblaze B2 ──
-    B2_ENDPOINT_URL: Optional[str] = None
-    B2_ACCESS_KEY_ID: Optional[str] = None
-    B2_SECRET_ACCESS_KEY: Optional[str] = None
-    B2_BUCKET_NAME: Optional[str] = None
-    B2_PUBLIC_URL: Optional[str] = None
+    # ── Hugging Face Dataset (Public Storage Bucket alternative) ──
+    HF_TOKEN: Optional[str] = None
+    HF_DATASET_REPO: str = "goat1242/newsapp"
 
     # ── Groq API & Mistral API (AI Script Writer) ──
     GROQ_API_KEY: Optional[str] = None
